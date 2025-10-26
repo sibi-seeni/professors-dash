@@ -15,4 +15,5 @@ class Lecture(Base):
     key_points_json = Column(Text, nullable=True) # For "keyPoints"
     examples_json = Column(Text, nullable=True)   # For "examplesUsed"
     lda_topics_json = Column(Text, nullable=True) # For the gensim/nltk topics
+    notes_json = Column(Text, nullable=True)      # For the rich notes
     created_at = Column(DateTime(timezone=True), server_default=func.now())

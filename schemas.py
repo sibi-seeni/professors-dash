@@ -12,6 +12,7 @@ class LectureResponse(BaseModel):
     key_points_json: Optional[str] = None
     examples_json: Optional[str] = None 
     lda_topics_json: Optional[str] = None  
+    notes_json: Optional[str] = None
     
     model_config = ConfigDict(from_attributes=True)
     

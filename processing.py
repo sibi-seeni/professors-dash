@@ -148,6 +148,146 @@ def analyze_with_llm(transcribed_text: str) -> dict:
         except Exception as e:
             print(f"Failed to parse JSON even after cleaning: {e}")
             return {"error": "Failed to parse LLM response"}
+        
+# --- FUNCTION FOR CLASS NOTES ---
+def generate_pedagogical_notes(transcribed_text: str) -> dict:
+    """
+    Generates rich, structured pedagogical notes based on the
+    prompt from Cell 10 of the notebook.
+    """
+    print("Starting rich pedagogical notes generation (from IPYNB Cell 10)...")
+    
+    # This is the prompt from Cell 10 of the notebook
+    prompt = f"""
+    You are a **university-level instructional designer and academic content synthesis expert**,
+    tasked with producing **final, publication-quality lecture notes** from a full classroom transcript.
+
+    Your notes must read like a **complete, pedagogically designed lecture document**, suitable for:
+    - student distribution, and
+    - instructor delivery as a teaching script.
+
+    ---
+
+    ### PRIMARY OBJECTIVE
+    Transform the transcript into **cohesive, detailed, and instructionally sound notes** that:
+    - present **full conceptual explanations** with reasoning and examples,
+    - integrate **instructor cues, real-world analogies, and examples** fluidly,
+    - maintain a **didactic structure** (Introduction → Subtopics → Explanations → Applications → Summary),
+    - and sound **formally academic yet conversational**, as if read aloud in a university lecture.
+
+    Avoid shallow or one-line answers. Every list item or point must be **multi-sentence, explanatory, and instructional**.
+
+    ---
+
+    ### OUTPUT FORMAT
+    Return a **single valid JSON object** with this structure:
+
+    {{
+      "main_topic": "...",
+      "learning_objectives": ["..."],
+      "introduction": "Provide a complete paragraph introducing the topic, its context, relevance, and how it connects to prior or future lectures.",
+      "subtopics": ["..."],
+      "key_points": [
+        {{
+          "subtopic": "...",
+          "points": [
+            "Each point should be a multi-sentence paragraph explaining the idea, including what it is, why it matters, and how it fits within the lecture theme."
+          ]
+        }}
+      ],
+      "examples_and_explanations": [
+        {{
+          "subtopic": "...",
+          "example": "Clearly name or describe the example used by the instructor.",
+          "step_by_step_explanation": "Explain the example step by step, connecting each part to underlying principles or theories.",
+          "connection_to_concept": "Discuss what this example teaches or clarifies about the concept."
+        }}
+      ],
+      "case_studies_or_applications": [
+        {{
+          "context": "Specify the practical or real-world setting.",
+          "description": "Summarize what occurred or was discussed.",
+          "lesson": "Explain what conceptual or applied insight the case illustrates."
+        }}
+      ],
+      "comparisons": [
+        {{
+          "concept": "State the two items or paradigms compared.",
+          "feature_a": "Describe feature or approach A in detail.",
+          "feature_b": "Describe feature or approach B in detail.",
+          "difference": "Offer a clear, paragraph-length discussion of how and why they differ and when each is preferred."
+        }}
+      ],
+      "activities_or_demonstrations": [
+        {{
+          "activity": "Describe the classroom or lab activity.",
+          "purpose": "Explain the learning goal behind the activity.",
+          "process": "Provide sequential steps or what students were asked to do.",
+          "key_takeaway": "Summarize the conceptual or skill-based understanding gained."
+        }}
+      ],
+      "terminology_and_definitions": [
+        {{
+          "term": "List one technical term or keyword.",
+          "definition": "Provide a full-sentence, contextual definition that captures meaning and relevance.",
+          "context_used": "Indicate where or how it appeared during the lecture."
+        }}
+      ],
+      "instructor_tips_and_analogies": [
+        {{
+          "analogy_or_tip": "Include any analogy, metaphor, or teaching shortcut mentioned.",
+          "purpose": "Explain what aspect of understanding this analogy clarifies or simplifies.",
+          "teaching_note": "Add how the instructor framed, demonstrated, or emphasized this analogy in class."
+        }}
+      ],
+      "questions_and_answers": [
+        {{
+          "question": "Write the student’s or instructor’s question in full.",
+          "answer": "Write the complete answer or explanation given.",
+          "who_asked": "Identify who asked the question (Student, Instructor).",
+          "who_answered": "Identify who answered the question (Student, Instructor).",
+          "teaching_value": "Explain"
+        }}
+      ],
+      "summary_and_conclusion": "Compose a multi-paragraph synthesis that ties all subtopics together, reiterates significance, and reinforces overarching principles. Integrate reflection on applications or implications if relevant.",
+      "key_takeaways": [
+        "Write 3–5 complete, memorable sentences capturing the main conceptual lessons of the lecture."
+      ],
+      "highlighted_insight": "**Write one powerful, bolded statement summarizing the lecture’s central insight or message.**"
+    }}
+
+    ---
+    Transcript:
+    {transcribed_text}
+    """
+
+    response = client.chat.completions.create(
+        model="llama-3.3-70b-instruct", # Using the upgraded model from the notebook
+        messages=[
+            # System prompt from notebook Cell 10
+            {"role": "system", "content": "You must output a single valid JSON object only. No markdown, commentary, or preamble."},
+            {"role": "user", "content": prompt}
+        ],
+        extra_body={
+            "metadata": {"generation_name": "pedagogical_notes_generation", "trace_user_id": "faculty_demo"}
+        }
+    )
+
+    # Use the robust parsing logic
+    try:
+        data = json.loads(response.choices[0].message.content)
+        print("Pedagogical notes generated and parsed.")
+        return data
+    except json.JSONDecodeError:
+        print("Attempting to clean and parse notes JSON...")
+        cleaned = re.sub(r"```json\n|```", "", response.choices[0].message.content.strip(), flags=re.MULTILINE)
+        try:
+            data = json.loads(cleaned)
+            print("Pedagogical notes complete and parsed after cleaning.")
+            return data
+        except Exception as e:
+            print(f"Failed to parse notes JSON even after cleaning: {e}")
+            return {"error": "Failed to parse LLM response for notes"}
 
 # --- LDA Topic Function (Unchanged) ---
 def get_lda_topics(transcribed_text: str) -> list:

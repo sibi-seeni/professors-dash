@@ -3,7 +3,7 @@ import os
 from fastapi import BackgroundTasks, HTTPException, Depends, UploadFile, File, FastAPI
 from sqlalchemy.orm import Session
 from typing import List
-
+import json
 import database
 import models
 import schemas
@@ -80,6 +80,30 @@ async def upload_lecture(
 
     # 4. Return immediate response
     return {"lecture_id": new_lecture.id, "status": "PROCESSING"}
+
+@app.get("/lecture/{lecture_id}/notes")
+def get_lecture_notes(lecture_id: int, db: Session = Depends(get_db)):
+    """
+    Returns the full, pedagogically structured class notes as a JSON object
+    (from the new 'notes_json' column).
+    """
+    lecture = db.query(models.Lecture).filter(models.Lecture.id == lecture_id).first()
+    if not lecture:
+        raise HTTPException(status_code=404, detail="Lecture not found")
+    
+    if lecture.status == "PROCESSING":
+        raise HTTPException(status_code=400, detail="Lecture is still processing. Notes are not yet available.")
+    
+    if not lecture.notes_json:
+        raise HTTPException(status_code=404, detail="Notes were not found or could not be generated for this lecture.")
+    
+    # Parse the string from the DB into a real JSON object
+    # This sends a clean JSON object to the frontend, not a string
+    try:
+        notes_object = json.loads(lecture.notes_json)
+        return notes_object
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=500, detail="Failed to parse the stored notes JSON.")
 
 # --------------------------------------------
 # ANALYTICS ROUTES
