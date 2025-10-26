@@ -9,7 +9,7 @@ import models
 import schemas
 import processing
 import analytics
-# import syllabus_tracker
+import syllabus_tracker
 
 # --------------------------------------------
 # Database Dependency
@@ -133,38 +133,38 @@ def get_dashboard_metrics(db: Session = Depends(get_db)):
 # SYLLABUS TRACKING ENDPOINTS
 # -------------------------
 
-# @app.post("/upload_syllabus/")
-# async def upload_syllabus(
-#     file: UploadFile = File(...),
-#     db: Session = Depends(get_db)
-# ):
-#     """
-#     Upload a syllabus (PDF or DOCX) and compute coverage stats
-#     by comparing it against lecture topics.
-#     """
-#     upload_dir = "temp_uploads/syllabus"
-#     os.makedirs(upload_dir, exist_ok=True)
-#     file_path = os.path.join(upload_dir, file.filename)
+@app.post("/upload_syllabus/")
+async def upload_syllabus(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    """
+    Upload a syllabus (PDF or DOCX) and compute coverage stats
+    by comparing it against lecture topics.
+    """
+    upload_dir = "temp_uploads/syllabus"
+    os.makedirs(upload_dir, exist_ok=True)
+    file_path = os.path.join(upload_dir, file.filename)
 
-#     with open(file_path, "wb") as buffer:
-#         shutil.copyfileobj(file.file, buffer)
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
 
-#     try:
-#         result = syllabus_tracker.process_syllabus_file(file_path, db)
-#         syllabus_tracker.save_coverage_result(result, file.filename)
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=f"Syllabus processing failed: {e}")
+    try:
+        result = syllabus_tracker.process_syllabus_file(file_path, db)
+        syllabus_tracker.save_coverage_result(result, file.filename)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Syllabus processing failed: {e}")
 
-#     return {"filename": file.filename, "coverage_result": result}
+    return {"filename": file.filename, "coverage_result": result}
 
-# @app.get("/syllabus_result/")
-# def get_latest_syllabus_result():
-#     """
-#     Returns the most recently saved syllabus coverage JSON.
-#     """
-#     latest = syllabus_tracker.get_latest_coverage_result()
-#     if not latest:
-#         raise HTTPException(status_code=404, detail="No syllabus result found yet.")
-#     return latest
+@app.get("/syllabus_result/")
+def get_latest_syllabus_result():
+    """
+    Returns the most recently saved syllabus coverage JSON.
+    """
+    latest = syllabus_tracker.get_latest_coverage_result()
+    if not latest:
+        raise HTTPException(status_code=404, detail="No syllabus result found yet.")
+    return latest
 
 # --------------------------------------------

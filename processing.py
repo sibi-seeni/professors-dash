@@ -34,7 +34,7 @@ except LookupError:
 stop_words = stopwords.words('english')
 
 
-# --- Transcription Function ---
+# --- Transcription Function (Unchanged) ---
 def transcribe_with_whisper(file_path: str) -> str:
     print(f"Starting transcription for {file_path}...")
     with open(file_path, "rb") as audio_file:
@@ -51,66 +51,92 @@ def transcribe_with_whisper(file_path: str) -> str:
     print("Transcription complete.")
     return transcript.text
 
-# --- Analysis Function ---
+# --- Analysis Function (UPDATED with prompt from IPYNB Cell 5/6) ---
 
 def analyze_with_llm(transcribed_text: str) -> dict:
-    print("Starting LLM analysis...")
+    print("Starting LLM analysis ...")
     
     prompt = f"""
-    You are an academic teaching analyst. Analyze the following lecture transcript and return a structured JSON object.
-    Your output MUST be *only* the JSON object, with no other text.
-    
-    The JSON object must use the following exact keys:
-    - "topicsCovered": A list of objects, where each object has a "topic" (string) and "subtopics" (list of strings).
-    - "keyPoints": A list of objects, where each object has a "topic" (string) and "points" (list of strings).
-    - "questionsAsked": A list of objects, where each object has a "question" (string), "type" (string), and "answer" (string).
-    - "examplesUsed": A list of objects, where each object has an "example" (string), "topic" (string), and "explanation" (string).
-    - "summaryInsight": An object with "mainIdeas" (list of strings), "keyTakeaway" (string), and "connectionToBroaderCourseThemes" (string).
+    You are a **university-level lecture synthesis and academic content structuring assistant**.
+    Your task is to carefully analyze the following **classroom transcript** and produce a **clear, comprehensive, and pedagogically organized summary** of the lecture.
+    The goal is to transform raw spoken content into **instructionally valuable, publication-quality study notes**.
 
-    Use the detailed instructions below to populate each key:
-    
-    1. For "topicsCovered":
-    Identify all main topics and subtopics in the exact order they appeared.
-    Highlight transitions between themes.
-    
-    2. For "keyPoints":
-    Provide thorough, bullet-point explanations under each topic and subtopic.
-    Include definitions, explanations, arguments, and important details.
-    
-    3. For "questionsAsked":
-    List all questions posed.
-    Indicate if they were rhetorical, discussion-based, or comprehension checks.
-    
-    4. For "examplesUsed":
-    Record any examples, case studies, or analogies mentioned.
-    Briefly explain how each example illustrated a concept.
-    
-    5. For "summaryInsight":
-    Conclude with a concise synthesis of the lecture’s main ideas and the overall learning objective.
+    Your output MUST be *only* a valid JSON object with **no extra commentary, markdown, or code fences.**
+    The JSON object must include the following keys and subkeys **exactly as listed**:
+
+    ---
+
+    #### 1. "topicsCovered"
+    A list of objects capturing the structure and flow of the lecture.
+    Each object must include:
+    - **"topic"** *(string)* — The primary subject or concept discussed.
+    - **"subtopics"** *(list of strings)* — Subthemes or secondary concepts under that main topic, listed in the **order presented during the lecture**.
+    - Include mention of any **transitions** between topics.
+
+    ---
+
+    #### 2. "keyPoints"
+    A list of objects summarizing detailed explanations for each topic.
+    Each object must include:
+    - **"topic"** *(string)* — The topic these points relate to.
+    - **"points"** *(list of strings)* — Multi-sentence, well-developed explanations of:
+      - Definitions, reasoning, and conceptual elaboration;
+      - Instructor arguments, examples, or key insights;
+      - Comparisons, relationships, or cause–effect logic between ideas;
+      - Any mentioned data, formulas, or specialized terminology (with contextual explanation);
+      - Teaching cues or rhetorical clarifications that helped illustrate the concept.
+
+    ---
+
+    #### 3. "questionsAsked"
+    A list of objects representing interactive dialogue and inquiry during the lecture.
+    Each object must include:
+    - **"question"** *(string)* — The exact or paraphrased question asked.
+    - **"whoAsked"** *(string)* — Identify whether it was asked by *"Instructor"* or *"Student"*.
+    - **"topic"** *(string)* — The specific topic or subtopic the question relates to.
+    - **"answer"** *(string)* — A complete explanation of the response given.
+    - **"learningValue"** *(string)* — A short description of how this question-and-answer exchange deepened understanding.
+
+    ---
+
+    #### 4. "examplesUsed"
+    A list of objects documenting all illustrative materials used in the lecture.
+    Each object must include:
+    - **"example"** *(string)* — The name or short description of the example, case study, or analogy.
+    - **"topic"** *(string)* — The concept or theory it was meant to illustrate.
+    - **"explanation"** *(string)* — A step-by-step explanation of how the example clarified, simplified, or contextualized the concept.
+    - **"connectionToConcept"** *(string)* — How this example reinforced theoretical understanding or bridged abstract ideas to practical applications.
+
+    ---
+
+    #### 5. "summaryInsight"
+    An object synthesizing the full lecture meaning and pedagogical message.
+    This object must include:
+    - **"mainIdeas"** *(list of strings)* — A cohesive synthesis of the lecture’s major themes, structured in logical flow.
+    - **"keyTakeaway"** *(string)* — The central conceptual or applied insight that the instructor wanted students to retain.
+    - **"connectionToBroaderCourseThemes"** *(string)* — A reflection on how this lecture ties into broader course objectives, future lessons, or real-world implications.
+
+    ---
 
     Transcript:
     {transcribed_text}
     """
 
     response = client.chat.completions.create(
-        model="llama-3.1-70b-instruct",
+        model="llama-3.3-70b-instruct", # Using the upgraded model from the notebook
         messages=[
             {"role": "system", "content": "You are an academic teaching analyst who processes classroom transcripts into structured insights for teachers. Your output must be a valid JSON object."},
             {"role": "user", "content": prompt}
         ],
         extra_body={
-            "metadata": {"generation_name": "class_topic_analytics", "trace_user_id": "faculty_demo"}
+            "metadata": {"generation_name": "class_topic_analytics_split", "trace_user_id": "faculty_demo"}
         }
     )
 
     # Clean and parse the JSON response
     try:
         data = json.loads(response.choices[0].message.content)
-        print("LLM analysis complete and parsed.")
-        
-        # --- print statement for debugging ---
-        # print(json.dumps(data, indent=2)) 
-        
+        print("LLM analysis (enhanced) complete and parsed.")
         return data
     except json.JSONDecodeError:
         print("Attempting to clean and parse JSON...")
@@ -118,31 +144,23 @@ def analyze_with_llm(transcribed_text: str) -> dict:
         try:
             data = json.loads(cleaned)
             print("LLM analysis complete and parsed after cleaning.")
-            
-            # --- print statement for debugging ---
-            # print(json.dumps(data, indent=2)) 
-            
             return data
         except Exception as e:
             print(f"Failed to parse JSON even after cleaning: {e}")
             return {"error": "Failed to parse LLM response"}
 
-# --- LDA Topic Function ---
+# --- LDA Topic Function (Unchanged) ---
 def get_lda_topics(transcribed_text: str) -> list:
     print("Starting LDA topic analysis...")
     try:
-        # Preprocess transcript into tokens
         tokens = [w.lower() for w in re.findall(r'\b[a-zA-Z]{3,}\b', transcribed_text) if w.lower() not in stop_words]
         
-        # --- Add a check to prevent crash if tokens are still empty ---
         if not tokens:
             print("No valid tokens found for LDA after filtering.")
             return ["No topics generated (short transcript)."]
 
         dictionary = corpora.Dictionary([tokens])
         corpus = [dictionary.doc2bow(tokens)]
-
-        # LDA Topic Model (Simple 3-topic split)
         lda_model = gensim.models.LdaModel(corpus=corpus, id2word=dictionary, num_topics=3, passes=10)
 
         topics_list = []
@@ -153,7 +171,7 @@ def get_lda_topics(transcribed_text: str) -> list:
         return topics_list
     except Exception as e:
         print(f"LDA analysis failed: {e}")
-        return [] # Return empty list on failure
+        return []
 
 
 # --- Background Job Function ---
@@ -176,7 +194,7 @@ def process_lecture_file(lecture_id: int, file_path: str):
         db.commit()
         print(f"Lecture {lecture_id}: Transcript saved.")
 
-        # 3. Run REAL Analysis (One call for all data)
+        # 3. Run REAL Analysis (using the new enhanced prompt)
         analysis_data = analyze_with_llm(transcript_text)
         
         if "error" in analysis_data:
@@ -185,18 +203,15 @@ def process_lecture_file(lecture_id: int, file_path: str):
         # 4. Run LDA Topic Modeling
         lda_topics_list = get_lda_topics(transcript_text)
 
-        # 5. Map ALL results to our existing DB columns
+        # 5. Map ALL results back to your original DB columns
         # We use json.dumps to store the Python list/dict as a JSON string
         
-        # --- EXISTING ---
         lecture.summary = json.dumps(analysis_data.get("summaryInsight", {}))
         lecture.topics_json = json.dumps(analysis_data.get("topicsCovered", []))
         lecture.quiz_json = json.dumps(analysis_data.get("questionsAsked", []))
-        
-        # --- NEWLY ADDED ---
         lecture.key_points_json = json.dumps(analysis_data.get("keyPoints", []))
         lecture.examples_json = json.dumps(analysis_data.get("examplesUsed", []))
-        lecture.lda_topics_json = json.dumps(lda_topics_list) # Save the new LDA topics
+        lecture.lda_topics_json = json.dumps(lda_topics_list) # Save the LDA topics
         
         # 6. Mark as DONE
         lecture.status = "DONE"
@@ -205,9 +220,7 @@ def process_lecture_file(lecture_id: int, file_path: str):
 
     except Exception as e:
         print(f"Failed to process lecture {lecture_id}. Error: {e}")
-        # Rollback any partial commits on error
         db.rollback()
-        # Try to get the lecture object again to update status
         lecture = db.query(models.Lecture).filter(models.Lecture.id == lecture_id).first()
         if lecture:
             lecture.status = "FAILED"
