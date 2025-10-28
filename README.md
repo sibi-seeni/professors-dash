@@ -11,7 +11,7 @@ This system:
 
 ---
 
-## 🚀 Core Features
+## Core Features
 
 ### 🎧 Async Lecture Processing
 
@@ -22,7 +22,7 @@ All heavy processing (transcription, AI analysis) happens in the background.
 
 Uses **OpenAI’s Whisper-large-v3** for highly accurate lecture transcriptions.
 
-### 🧩 Dual AI Analysis
+### Dual AI Analysis
 
 **Dashboard Analytics**
 
@@ -42,7 +42,7 @@ Upload a course syllabus (PDF or DOCX) — an LLM reads and parses it into a **d
 Automatically compares **actual topics** from lectures vs **planned topics** from the syllabus.
 Outputs a detailed coverage report (e.g., `90% covered, 2 topics missing`).
 
-### 📡 Analytics API
+### Analytics API
 
 Full suite of API endpoints to power the frontend dashboard:
 `/analytics/dashboard`, `/analytics/questions`, and more.
@@ -53,7 +53,7 @@ Includes **Gensim/NLTK** to perform LDA topic modeling on transcripts as an alte
 
 ---
 
-## 🧱 Tech Stack
+## Tech Stack
 
 | Layer            | Technologies                              |
 | ---------------- | ----------------------------------------- |
@@ -100,6 +100,7 @@ uvicorn main:app --reload
 
 Your API will be live at:
 👉 `http://127.0.0.1:8000`
+
 Interactive Docs:
 👉 `http://127.0.0.1:8000/docs`
 
