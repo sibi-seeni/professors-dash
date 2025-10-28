@@ -24,18 +24,14 @@ Uses **OpenAI’s Whisper-large-v3** for highly accurate lecture transcriptions.
 
 ### Dual AI Analysis
 
-**Dashboard Analytics**
-
-* LLM generates structured JSON for key metrics:
+* **Dashboard Analytics**: LLM generates structured JSON for key metrics:
   topics covered, key points, questions asked, examples used, and a high-level summary.
 
-**Pedagogical Notes**
-
-* A second, detailed LLM call (from `Voice_Text_Transcript_summary_analytics_Note_VF_1.ipynb`) generates rich, publication-quality class notes in JSON.
+* **Pedagogical Notes**: A second, detailed LLM call generates rich, publication-quality class notes in JSON.
 
 ### 📘 AI Syllabus Parsing
 
-Upload a course syllabus (PDF or DOCX) — an LLM reads and parses it into a **day-by-day JSON “course roadmap”** (from `Course_road_map_.ipynb`).
+Upload a course syllabus (PDF or DOCX) — Llama 3.3 reads and parses it into a **day-by-day JSON “course roadmap”**.
 
 ### 📊 Syllabus Coverage Tracking
 
