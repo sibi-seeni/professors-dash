@@ -70,8 +70,8 @@ Includes **Gensim/NLTK** to perform LDA topic modeling on transcripts as an alte
 
 ```bash
 # 1. Clone the repository
-git clone <your-repo-url>
-cd <your-repo-name>
+git clone https://github.com/sibi-seeni/professors-dash.git
+cd professors-dash
 
 # 2. Create and activate a virtual environment
 python -m venv .venv
